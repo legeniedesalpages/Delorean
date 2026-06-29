@@ -21,18 +21,14 @@ struct GpsScreenState {
   float latitude;
   float longitude;
   uint8_t satellites;
-  uint32_t baudRate;
-  uint8_t baudIndex;
-  uint16_t rawEvents;
   uint16_t isrChars;
-  uint16_t parsedSentences;
-  unsigned long lastBaudSwitchMs;
+  uint16_t lastObservedIsrChars;
   unsigned long lastByteMs;
   unsigned long lastSentenceMs;
 };
 
 inline GpsScreenState& gpsScreenState() {
-  static GpsScreenState state = {false, false, false, false, false, false, 0.0f, 0.0f, 0, 9600UL, 0, 0, 0, 0, 0, 0, 0};
+  static GpsScreenState state = {false, false, false, false, false, false, 0.0f, 0.0f, 0, 0, 0, 0, 0};
   return state;
 }
 
@@ -43,28 +39,12 @@ inline volatile uint16_t& gpsIsrCharCount() {
   return count;
 }
 
-inline void handleGpsRxChar(uint8_t) {
-  volatile uint16_t& count = gpsIsrCharCount();
-  if (count < 9999) {
-    count += 1;
-  }
-}
-
 inline void handleGpsRxCharForParser(uint8_t c) {
   volatile uint16_t& count = gpsIsrCharCount();
   if (count < 9999) {
     count += 1;
   }
   gpsParser().handle(c);
-}
-
-inline const uint32_t* gpsBaudRates() {
-  static const uint32_t rates[] = {9600UL, 115200UL, 38400UL, 19200UL, 4800UL};
-  return rates;
-}
-
-inline uint8_t gpsBaudRateCount() {
-  return 4;
 }
 
 inline NMEAGPS& gpsParser() {
@@ -80,19 +60,8 @@ inline NeoSWSerial& gpsSerialPort() {
 
 inline void initGpsCreen() {
   GpsScreenState& state = gpsScreenState();
-  state = {false, false, false, false, false, false, 0.0f, 0.0f, 0, 9600UL, 0, 0, 0, 0, 0, 0, 0};
+  state = {false, false, false, false, false, false, 0.0f, 0.0f, 0, 0, 0, 0, 0};
   gpsIsrCharCount() = 0;
-}
-
-inline void restartGpsSerialAtCurrentBaud() {
-  GpsScreenState& state = gpsScreenState();
-  NeoSWSerial& gps = gpsSerialPort();
-
-  gps.end();
-  gps.attachInterrupt(handleGpsRxCharForParser);
-  gps.begin(state.baudRate);
-  gps.listen();
-  state.serialStarted = true;
 }
 
 inline void setGpsCreenEnabled(bool enabled) {
@@ -102,7 +71,7 @@ inline void setGpsCreenEnabled(bool enabled) {
   if (enabled) {
     if (!state.serialStarted) {
       gps.attachInterrupt(handleGpsRxCharForParser);
-      gps.begin(state.baudRate);
+      gps.begin(9600);
       state.serialStarted = true;
     }
     gps.listen();
@@ -121,29 +90,18 @@ inline void setGpsCreenEnabled(bool enabled) {
 inline void updateGpsCreen(unsigned long nowMs) {
   GpsScreenState& state = gpsScreenState();
   NMEAGPS& parser = gpsParser();
-  state.isrChars = gpsIsrCharCount();
+  const uint16_t currentIsrChars = gpsIsrCharCount();
+  state.isrChars = currentIsrChars;
 
-  if (!state.hasSignal && state.parsedSentences == 0 && (nowMs - state.lastBaudSwitchMs) > 3000UL) {
-    state.baudIndex = (state.baudIndex + 1) % gpsBaudRateCount();
-    state.baudRate = gpsBaudRates()[state.baudIndex];
-    state.lastBaudSwitchMs = nowMs;
-    if (state.active) {
-      restartGpsSerialAtCurrentBaud();
-    }
-  }
-
-  if (state.isrChars > 0) {
+  if (currentIsrChars != state.lastObservedIsrChars) {
     state.lastByteMs = nowMs;
     state.hasSignal = true;
-    state.rawEvents = state.isrChars;
+    state.lastObservedIsrChars = currentIsrChars;
   }
 
   while (parser.available()) {
     const gps_fix fix = parser.read();
     state.lastSentenceMs = nowMs;
-    if (state.parsedSentences < 9999) {
-      state.parsedSentences += 1;
-    }
     state.hasLocation = fix.valid.location;
     state.hasFix = fix.valid.location;
     state.hasSatellites = fix.valid.satellites;
@@ -167,30 +125,32 @@ inline void updateGpsCreen(unsigned long nowMs) {
 inline void renderGpsCreen(U8G2& u8g2) {
   GpsScreenState& state = gpsScreenState();
   char line[28];
+  char latitudeText[12];
+  char longitudeText[12];
 
   u8g2.setFont(u8g2_font_6x12_tr);
 
   if (!state.hasSignal) {
-    u8g2.drawStr(2, toPhysicalY(18), "STATUT: PAS DE SIG");
-  } else if (state.parsedSentences == 0) {
-    u8g2.drawStr(2, toPhysicalY(18), "STATUT: RX BRUT");
+    u8g2.drawStr(2, toPhysicalY(30), "Statut: PAS DE SIGNAL");
   } else if (state.hasFix) {
-    u8g2.drawStr(2, toPhysicalY(18), "STATUT: FIX OK");
+    u8g2.drawStr(2, toPhysicalY(30), "Statut: GPS OK");
   } else {
-    u8g2.drawStr(2, toPhysicalY(18), "STATUT: RECHERCHE");
+    u8g2.drawStr(2, toPhysicalY(30), "Statut: RECHERCHE...");
   }
-
 
   if (state.hasSatellites) {
-    snprintf(line, sizeof(line), "SAT:%u NMEA:%u", state.satellites, state.parsedSentences);
+    snprintf(line, sizeof(line), "Satellites: %u", state.satellites);
   } else {
-    snprintf(line, sizeof(line), "SAT:-- NMEA:%u", state.parsedSentences);
+    snprintf(line, sizeof(line), "Satellites: --");
   }
-  u8g2.drawStr(2, toPhysicalY(34), line);
+  u8g2.drawStr(2, toPhysicalY(42), line);
 
-  snprintf(line, sizeof(line), "RX:%u ISR:%u", state.rawEvents, state.isrChars);
-  u8g2.drawStr(2, toPhysicalY(50), line);
-
-  snprintf(line, sizeof(line), "B:%lu", static_cast<unsigned long>(state.baudRate));
-  u8g2.drawStr(2, toPhysicalY(62), line);
+  if (state.hasLocation) {
+    dtostrf(state.latitude, 0, 2, latitudeText);
+    dtostrf(state.longitude, 0, 2, longitudeText);
+    snprintf(line, sizeof(line), "Position: %s,%s", latitudeText, longitudeText);
+  } else {
+    snprintf(line, sizeof(line), "Position: ----,----");
+  }
+  u8g2.drawStr(2, toPhysicalY(54), line);
 }
