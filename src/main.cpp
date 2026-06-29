@@ -46,10 +46,10 @@ static void drawStartupFrameSimple(int leftX, int rightX, int underlineX, uint8_
 
   u8g2.setFont(u8g2_font_8x13B_tr);
   // Faux bold + slightly bigger look for title.
-  u8g2.drawStr(leftX, titleY, "DELO");
-  u8g2.drawStr(leftX + 1, titleY, "DELO");
-  u8g2.drawStr(rightX, titleY, "REAN");
-  u8g2.drawStr(rightX + 1, titleY, "REAN");
+  u8g2.drawStr(leftX, titleY, "D E L O ");
+  u8g2.drawStr(leftX + 1, titleY, "D E L O ");
+  u8g2.drawStr(rightX, titleY, "R E A N");
+  u8g2.drawStr(rightX + 1, titleY, "R E A N");
 
   if (underlineWidth > 0) {
     u8g2.drawHLine(underlineX, underlineY, underlineWidth);
@@ -64,8 +64,8 @@ static void drawStartupFrameSimple(int leftX, int rightX, int underlineX, uint8_
 
 static void playStartupAnimation() {
   u8g2.setFont(u8g2_font_8x13B_tr);
-  const int leftWordWidth = u8g2.getStrWidth("DELO");
-  const int titleWidth = u8g2.getStrWidth("DELOREAN");
+  const int leftWordWidth = u8g2.getStrWidth("D E L O ");
+  const int titleWidth = u8g2.getStrWidth("D E L O R E A N");
   const int finalLeftX = (kLogicalWidth - titleWidth) / 2;
   const int finalRightX = finalLeftX + leftWordWidth;
 
@@ -84,16 +84,16 @@ static void playStartupAnimation() {
     do {
       drawStartupFrameSimple(leftX, rightX, finalLeftX, 0, false, dmcX);
     } while (u8g2.nextPage());
-    delay(50);
+    delay(20);
   }
 
   // Underline appears progressively under DELOREAN.
-  for (uint8_t width = 0; width <= titleWidth; width += 6) {
+  for (uint8_t width = 0; width <= titleWidth; width += 9) {
     u8g2.firstPage();
     do {
       drawStartupFrameSimple(finalLeftX, finalRightX, finalLeftX, width, false, dmcX);
     } while (u8g2.nextPage());
-    delay(48);
+    delay(10);
   }
 
   // Final title card with DMC-12.

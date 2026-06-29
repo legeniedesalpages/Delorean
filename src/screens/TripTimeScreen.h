@@ -214,13 +214,13 @@ inline void renderTripTimeScreen(U8G2& u8g2) {
 
   formatHms(currentTripSeconds, value, sizeof(value));
   buildTripLine("Actuel: ", value, line, sizeof(line));
-  u8g2.drawStr(2, toPhysicalY(18), line);
+  u8g2.drawStr(2, toPhysicalY(23), line);
 
-  formatHms(state.data.previousTripSeconds, value, sizeof(value));
+  formatDhm(state.data.previousTripSeconds, value, sizeof(value));
   buildTripLine("Precedent: ", value, line, sizeof(line));
-  u8g2.drawStr(2, toPhysicalY(34), line);
+  u8g2.drawStr(2, toPhysicalY(39), line);
 
   formatDhm(state.data.cumulativeSeconds, value, sizeof(value));
   buildTripLine("Cumule: ", value, line, sizeof(line));
-  u8g2.drawStr(2, toPhysicalY(50), line);
+  u8g2.drawStr(2, toPhysicalY(55), line);
 }
