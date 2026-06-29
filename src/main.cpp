@@ -39,6 +39,71 @@ bool comboLatched = false;
 bool suppressReleaseActions = false;
 ArkanoidGameState arkanoidGame;
 
+static void drawStartupFrameSimple(int leftX, int rightX, int underlineX, uint8_t underlineWidth, bool showDmc, int dmcX) {
+  const int titleY = toPhysicalY(31);
+  const int underlineY = toPhysicalY(38);
+  const int dmcY = toPhysicalY(52);
+
+  u8g2.setFont(u8g2_font_8x13B_tr);
+  // Faux bold + slightly bigger look for title.
+  u8g2.drawStr(leftX, titleY, "DELO");
+  u8g2.drawStr(leftX + 1, titleY, "DELO");
+  u8g2.drawStr(rightX, titleY, "REAN");
+  u8g2.drawStr(rightX + 1, titleY, "REAN");
+
+  if (underlineWidth > 0) {
+    u8g2.drawHLine(underlineX, underlineY, underlineWidth);
+  }
+
+  if (showDmc) {
+    // Slightly lighter than title with a pseudo-italic offset.
+    u8g2.setFont(u8g2_font_6x12_tr);
+    u8g2.drawStr(dmcX, dmcY, "DMC-12");
+  }
+}
+
+static void playStartupAnimation() {
+  u8g2.setFont(u8g2_font_8x13B_tr);
+  const int leftWordWidth = u8g2.getStrWidth("DELO");
+  const int titleWidth = u8g2.getStrWidth("DELOREAN");
+  const int finalLeftX = (kLogicalWidth - titleWidth) / 2;
+  const int finalRightX = finalLeftX + leftWordWidth;
+
+  u8g2.setFont(u8g2_font_6x12_tr);
+  const int dmcX = (kLogicalWidth - u8g2.getStrWidth("DMC-12")) / 2;
+
+  const int leftStartX = -30;
+  const int rightStartX = 128;
+  const uint8_t mergeFrames = 14;
+
+  // DELO from left, REAN from right.
+  for (uint8_t frame = 0; frame < mergeFrames; ++frame) {
+    const int leftX = leftStartX + ((finalLeftX - leftStartX) * frame) / (mergeFrames - 1);
+    const int rightX = rightStartX + ((finalRightX - rightStartX) * frame) / (mergeFrames - 1);
+    u8g2.firstPage();
+    do {
+      drawStartupFrameSimple(leftX, rightX, finalLeftX, 0, false, dmcX);
+    } while (u8g2.nextPage());
+    delay(50);
+  }
+
+  // Underline appears progressively under DELOREAN.
+  for (uint8_t width = 0; width <= titleWidth; width += 6) {
+    u8g2.firstPage();
+    do {
+      drawStartupFrameSimple(finalLeftX, finalRightX, finalLeftX, width, false, dmcX);
+    } while (u8g2.nextPage());
+    delay(48);
+  }
+
+  // Final title card with DMC-12.
+  u8g2.firstPage();
+  do {
+    drawStartupFrameSimple(finalLeftX, finalRightX, finalLeftX, titleWidth, true, dmcX);
+  } while (u8g2.nextPage());
+  delay(3320);
+}
+
 static void updateButton(ButtonState& button, unsigned long nowMs) {
   const bool rawLevel = digitalRead(button.pin);
   button.pressedEvent = false;
@@ -149,6 +214,7 @@ void setup() {
   pinMode(kNextButtonPin, INPUT_PULLUP);
   pinMode(kPreviousButtonPin, INPUT_PULLUP);
   u8g2.begin();
+  playStartupAnimation();
   initTimeScreen();
   initTemperatureScreen();
   initTripTimeScreen();
