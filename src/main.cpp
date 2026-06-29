@@ -138,7 +138,7 @@ void setup() {
   pinMode(kPreviousButtonPin, INPUT_PULLUP);
   u8g2.begin();
   initTimeScreen();
-  initGpsSerialMonitorBridge();
+  initGpsCreen();
   resetArkanoidGame(arkanoidGame);
 }
 
@@ -146,10 +146,10 @@ void loop() {
   const unsigned long nowMs = millis();
   const bool gpsScreenActive = (currentMode == MODE_SCREENS && currentScreen == 4);
 
-  setGpsSerialMonitorBridgeEnabled(gpsScreenActive);
+  setGpsCreenEnabled(gpsScreenActive);
 
   if (gpsScreenActive) {
-    pumpGpsNmeaToSerialMonitor();
+    updateGpsCreen(nowMs);
   }
 
   updateButton(nextButton, nowMs);
