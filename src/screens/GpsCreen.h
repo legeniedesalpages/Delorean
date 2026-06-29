@@ -18,8 +18,10 @@ struct GpsScreenState {
   bool hasFix;
   bool hasLocation;
   bool hasSatellites;
+  bool hasSpeed;
   float latitude;
   float longitude;
+  float speedKmh;
   uint8_t satellites;
   uint16_t isrChars;
   uint16_t lastObservedIsrChars;
@@ -28,7 +30,7 @@ struct GpsScreenState {
 };
 
 inline GpsScreenState& gpsScreenState() {
-  static GpsScreenState state = {false, false, false, false, false, false, 0.0f, 0.0f, 0, 0, 0, 0, 0};
+  static GpsScreenState state = {false, false, false, false, false, false, false, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0};
   return state;
 }
 
@@ -60,8 +62,16 @@ inline NeoSWSerial& gpsSerialPort() {
 
 inline void initGpsCreen() {
   GpsScreenState& state = gpsScreenState();
-  state = {false, false, false, false, false, false, 0.0f, 0.0f, 0, 0, 0, 0, 0};
+  state = {false, false, false, false, false, false, false, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0};
   gpsIsrCharCount() = 0;
+}
+
+inline bool gpsSpeedAvailable() {
+  return gpsScreenState().hasSpeed;
+}
+
+inline float gpsSpeedKmh() {
+  return gpsScreenState().speedKmh;
 }
 
 inline void setGpsCreenEnabled(bool enabled) {
@@ -105,10 +115,15 @@ inline void updateGpsCreen(unsigned long nowMs) {
     state.hasLocation = fix.valid.location;
     state.hasFix = fix.valid.location;
     state.hasSatellites = fix.valid.satellites;
+    state.hasSpeed = fix.valid.speed;
 
     if (fix.valid.location) {
       state.latitude = fix.latitude();
       state.longitude = fix.longitude();
+    }
+
+    if (fix.valid.speed) {
+      state.speedKmh = fix.speed_kph();
     }
 
     if (fix.valid.satellites) {
@@ -119,6 +134,7 @@ inline void updateGpsCreen(unsigned long nowMs) {
   if (state.hasSignal && (nowMs - state.lastByteMs) > 4000UL) {
     state.hasSignal = false;
     state.hasFix = false;
+    state.hasSpeed = false;
   }
 }
 

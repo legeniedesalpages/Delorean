@@ -144,11 +144,11 @@ void setup() {
 
 void loop() {
   const unsigned long nowMs = millis();
-  const bool gpsScreenActive = (currentMode == MODE_SCREENS && currentScreen == 4);
+  const bool gpsDataScreenActive = (currentMode == MODE_SCREENS && (currentScreen == 1 || currentScreen == 4));
 
-  setGpsCreenEnabled(gpsScreenActive);
+  setGpsCreenEnabled(gpsDataScreenActive);
 
-  if (gpsScreenActive) {
+  if (gpsDataScreenActive) {
     updateGpsCreen(nowMs);
   }
 
