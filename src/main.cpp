@@ -6,7 +6,7 @@
 #include "screens/TimeScreen.h"
 #include "screens/SpeedScreen.h"
 #include "screens/TemperatureScreen.h"
-#include "screens/Screen4.h"
+#include "screens/DateScreen.h"
 #include "screens/GpsCreen.h"
 
 // SH1106 128x64 display over I2C on Arduino Uno.
@@ -37,6 +37,28 @@ AppMode currentMode = MODE_SCREENS;
 bool comboLatched = false;
 bool suppressReleaseActions = false;
 ArkanoidGameState arkanoidGame;
+
+static void logRtcStartupTime() {
+  if (!timeScreenRtcAvailable()) {
+    Serial.println(F("RTC: absent"));
+    return;
+  }
+
+  const DateTime rtcNow = timeScreenRtc().now();
+  char rtcText[24];
+  snprintf(
+    rtcText,
+    sizeof(rtcText),
+    "RTC: %04d-%02d-%02d %02d:%02d:%02d",
+    rtcNow.year(),
+    rtcNow.month(),
+    rtcNow.day(),
+    rtcNow.hour(),
+    rtcNow.minute(),
+    rtcNow.second()
+  );
+  Serial.println(rtcText);
+}
 
 static void updateButton(ButtonState& button, unsigned long nowMs) {
   const bool rawLevel = digitalRead(button.pin);
@@ -130,7 +152,7 @@ static void renderActiveScreen() {
       renderTemperatureScreen(u8g2);
       break;
     case 3:
-      renderScreen4(u8g2);
+      renderDateScreen(u8g2);
       break;
     case 4:
       renderGpsCreen(u8g2);
@@ -144,8 +166,10 @@ static void renderActiveScreen() {
 void setup() {
   pinMode(kNextButtonPin, INPUT_PULLUP);
   pinMode(kPreviousButtonPin, INPUT_PULLUP);
+  Serial.begin(115200);
   u8g2.begin();
   initTimeScreen();
+  logRtcStartupTime();
   initTemperatureScreen();
   initGpsCreen();
   resetArkanoidGame(arkanoidGame);

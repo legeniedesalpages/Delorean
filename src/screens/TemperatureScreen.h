@@ -80,9 +80,9 @@ inline void renderTemperatureScreen(U8G2& u8g2) {
   u8g2.setFont(u8g2_font_6x12_tr);
   if (state.hasHumidity) {
     const int humidityInt = static_cast<int>(state.humidityPct + 0.5f);
-    snprintf(humidityText, sizeof(humidityText), "Humidite: %d%%", humidityInt);
+    snprintf(humidityText, sizeof(humidityText), "h:%d%%", humidityInt);
   } else {
-    snprintf(humidityText, sizeof(humidityText), "Humidite: --%%");
+    snprintf(humidityText, sizeof(humidityText), "h:--%%");
   }
   const int humidityX = kLogicalWidth - u8g2.getStrWidth(humidityText) - 2;
   u8g2.drawStr(humidityX, toPhysicalY(12), humidityText);
