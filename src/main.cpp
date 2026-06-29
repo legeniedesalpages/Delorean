@@ -5,7 +5,7 @@
 #include "screens/ArkanoidScreen.h"
 #include "screens/TimeScreen.h"
 #include "screens/SpeedScreen.h"
-#include "screens/Screen3.h"
+#include "screens/TemperatureScreen.h"
 #include "screens/Screen4.h"
 #include "screens/GpsCreen.h"
 
@@ -127,7 +127,7 @@ static void renderActiveScreen() {
       renderSpeedScreen(u8g2);
       break;
     case 2:
-      renderScreen3(u8g2);
+      renderTemperatureScreen(u8g2);
       break;
     case 3:
       renderScreen4(u8g2);
@@ -146,6 +146,7 @@ void setup() {
   pinMode(kPreviousButtonPin, INPUT_PULLUP);
   u8g2.begin();
   initTimeScreen();
+  initTemperatureScreen();
   initGpsCreen();
   resetArkanoidGame(arkanoidGame);
 }
