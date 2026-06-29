@@ -155,18 +155,64 @@ inline void renderGpsCreen(U8G2& u8g2) {
   }
 
   if (state.hasSatellites) {
-    snprintf(line, sizeof(line), "Satellites: %u", state.satellites);
+    char* p = line;
+    const char* prefix = "Satellites: ";
+    while (*prefix != '\0') {
+      *p++ = *prefix++;
+    }
+
+    uint8_t sat = state.satellites;
+    if (sat >= 100) {
+      *p++ = static_cast<char>('0' + (sat / 100));
+      sat %= 100;
+      *p++ = static_cast<char>('0' + (sat / 10));
+      *p++ = static_cast<char>('0' + (sat % 10));
+    } else if (sat >= 10) {
+      *p++ = static_cast<char>('0' + (sat / 10));
+      *p++ = static_cast<char>('0' + (sat % 10));
+    } else {
+      *p++ = static_cast<char>('0' + sat);
+    }
+    *p = '\0';
   } else {
-    snprintf(line, sizeof(line), "Satellites: --");
+    const char* txt = "Satellites: --";
+    uint8_t i = 0;
+    while (txt[i] != '\0' && i < (sizeof(line) - 1)) {
+      line[i] = txt[i];
+      ++i;
+    }
+    line[i] = '\0';
   }
   u8g2.drawStr(2, toPhysicalY(42), line);
 
   if (state.hasLocation) {
     dtostrf(state.latitude, 0, 2, latitudeText);
     dtostrf(state.longitude, 0, 2, longitudeText);
-    snprintf(line, sizeof(line), "Position: %s,%s", latitudeText, longitudeText);
+    char* p = line;
+    const char* prefix = "Position: ";
+    while (*prefix != '\0' && (p - line) < static_cast<int>(sizeof(line) - 1)) {
+      *p++ = *prefix++;
+    }
+    const char* lat = latitudeText;
+    while (*lat != '\0' && (p - line) < static_cast<int>(sizeof(line) - 1)) {
+      *p++ = *lat++;
+    }
+    if ((p - line) < static_cast<int>(sizeof(line) - 1)) {
+      *p++ = ',';
+    }
+    const char* lon = longitudeText;
+    while (*lon != '\0' && (p - line) < static_cast<int>(sizeof(line) - 1)) {
+      *p++ = *lon++;
+    }
+    *p = '\0';
   } else {
-    snprintf(line, sizeof(line), "Position: ----,----");
+    const char* txt = "Position: ----,----";
+    uint8_t i = 0;
+    while (txt[i] != '\0' && i < (sizeof(line) - 1)) {
+      line[i] = txt[i];
+      ++i;
+    }
+    line[i] = '\0';
   }
   u8g2.drawStr(2, toPhysicalY(54), line);
 }

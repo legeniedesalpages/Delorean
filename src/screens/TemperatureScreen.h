@@ -79,10 +79,36 @@ inline void renderTemperatureScreen(U8G2& u8g2) {
   char humidityText[20];
   u8g2.setFont(u8g2_font_6x12_tr);
   if (state.hasHumidity) {
-    const int humidityInt = static_cast<int>(state.humidityPct + 0.5f);
-    snprintf(humidityText, sizeof(humidityText), "h:%d%%", humidityInt);
+    int humidityInt = static_cast<int>(state.humidityPct + 0.5f);
+    if (humidityInt < 0) {
+      humidityInt = 0;
+    }
+    if (humidityInt > 100) {
+      humidityInt = 100;
+    }
+
+    char* p = humidityText;
+    *p++ = 'h';
+    *p++ = ':';
+    if (humidityInt >= 100) {
+      *p++ = '1';
+      *p++ = '0';
+      *p++ = '0';
+    } else if (humidityInt >= 10) {
+      *p++ = static_cast<char>('0' + (humidityInt / 10));
+      *p++ = static_cast<char>('0' + (humidityInt % 10));
+    } else {
+      *p++ = static_cast<char>('0' + humidityInt);
+    }
+    *p++ = '%';
+    *p = '\0';
   } else {
-    snprintf(humidityText, sizeof(humidityText), "h:--%%");
+    humidityText[0] = 'h';
+    humidityText[1] = ':';
+    humidityText[2] = '-';
+    humidityText[3] = '-';
+    humidityText[4] = '%';
+    humidityText[5] = '\0';
   }
   const int humidityX = kLogicalWidth - u8g2.getStrWidth(humidityText) - 2;
   u8g2.drawStr(humidityX, toPhysicalY(12), humidityText);

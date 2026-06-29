@@ -25,7 +25,12 @@ inline void renderDateScreen(U8G2& u8g2) {
   const int year = now.year();
 
   char yearText[5];
-  snprintf(yearText, sizeof(yearText), "%04d", year);
+  const int yearMod = year % 10000;
+  yearText[0] = static_cast<char>('0' + ((yearMod / 1000) % 10));
+  yearText[1] = static_cast<char>('0' + ((yearMod / 100) % 10));
+  yearText[2] = static_cast<char>('0' + ((yearMod / 10) % 10));
+  yearText[3] = static_cast<char>('0' + (yearMod % 10));
+  yearText[4] = '\0';
   const int yearX = (kLogicalWidth - u8g2.getStrWidth(yearText)) / 2;
   u8g2.drawStr(yearX, toPhysicalY(12), yearText);
 

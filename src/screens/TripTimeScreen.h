@@ -121,18 +121,83 @@ inline void updateTripTimeScreen(unsigned long nowMs) {
   saveTripPersistedData(state.data);
 }
 
+inline void appendTwoDigits(char*& p, uint32_t value) {
+  const uint32_t v = value % 100UL;
+  *p++ = static_cast<char>('0' + (v / 10UL));
+  *p++ = static_cast<char>('0' + (v % 10UL));
+}
+
+inline void appendUnsigned(char*& p, uint32_t value) {
+  char tmp[10];
+  uint8_t n = 0;
+  do {
+    tmp[n++] = static_cast<char>('0' + (value % 10UL));
+    value /= 10UL;
+  } while (value > 0UL);
+
+  while (n > 0) {
+    *p++ = tmp[--n];
+  }
+}
+
+inline void buildTripLine(const char* label, const char* value, char* out, size_t outLen) {
+  if (outLen == 0) {
+    return;
+  }
+
+  size_t i = 0;
+  while (label[i] != '\0' && (i + 1) < outLen) {
+    out[i] = label[i];
+    ++i;
+  }
+
+  size_t j = 0;
+  while (value[j] != '\0' && (i + 1) < outLen) {
+    out[i++] = value[j++];
+  }
+
+  out[i] = '\0';
+}
+
 inline void formatHms(uint32_t seconds, char* out, size_t outLen) {
+  if (outLen < 9) {
+    if (outLen > 0) {
+      out[0] = '\0';
+    }
+    return;
+  }
+
   const uint32_t hh = seconds / 3600UL;
   const uint32_t mm = (seconds % 3600UL) / 60UL;
   const uint32_t ss = seconds % 60UL;
-  snprintf(out, outLen, "%02lu:%02lu:%02lu", static_cast<unsigned long>(hh), static_cast<unsigned long>(mm), static_cast<unsigned long>(ss));
+  char* p = out;
+  appendTwoDigits(p, hh);
+  *p++ = ':';
+  appendTwoDigits(p, mm);
+  *p++ = ':';
+  appendTwoDigits(p, ss);
+  *p = '\0';
 }
 
 inline void formatDhm(uint32_t seconds, char* out, size_t outLen) {
+  if (outLen == 0) {
+    return;
+  }
+
   const uint32_t days = seconds / 86400UL;
   const uint32_t hours = (seconds % 86400UL) / 3600UL;
   const uint32_t minutes = (seconds % 3600UL) / 60UL;
-  snprintf(out, outLen, "%lud %02luh %02lum", static_cast<unsigned long>(days), static_cast<unsigned long>(hours), static_cast<unsigned long>(minutes));
+
+  char* p = out;
+  appendUnsigned(p, days);
+  *p++ = 'd';
+  *p++ = ' ';
+  appendTwoDigits(p, hours);
+  *p++ = 'h';
+  *p++ = ' ';
+  appendTwoDigits(p, minutes);
+  *p++ = 'm';
+  *p = '\0';
 }
 
 inline void renderTripTimeScreen(U8G2& u8g2) {
@@ -148,14 +213,14 @@ inline void renderTripTimeScreen(U8G2& u8g2) {
   u8g2.setFont(u8g2_font_6x12_tr);
 
   formatHms(currentTripSeconds, value, sizeof(value));
-  snprintf(line, sizeof(line), "Actuel: %s", value);
+  buildTripLine("Actuel: ", value, line, sizeof(line));
   u8g2.drawStr(2, toPhysicalY(18), line);
 
   formatHms(state.data.previousTripSeconds, value, sizeof(value));
-  snprintf(line, sizeof(line), "Precedent: %s", value);
+  buildTripLine("Precedent: ", value, line, sizeof(line));
   u8g2.drawStr(2, toPhysicalY(34), line);
 
   formatDhm(state.data.cumulativeSeconds, value, sizeof(value));
-  snprintf(line, sizeof(line), "Cumule: %s", value);
+  buildTripLine("Cumule: ", value, line, sizeof(line));
   u8g2.drawStr(2, toPhysicalY(50), line);
 }
