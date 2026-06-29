@@ -7,10 +7,10 @@
 #include "screens/SpeedScreen.h"
 #include "screens/Screen3.h"
 #include "screens/Screen4.h"
-#include "screens/Screen5.h"
+#include "screens/GpsCreen.h"
 
 // SH1106 128x64 display over I2C on Arduino Uno.
-U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 
 constexpr uint8_t kNextButtonPin = 8;
 constexpr uint8_t kPreviousButtonPin = 7;
@@ -125,7 +125,7 @@ static void renderActiveScreen() {
       renderScreen4(u8g2);
       break;
     case 4:
-      renderScreen5(u8g2);
+      renderGpsCreen(u8g2);
       break;
     default:
       renderTimeScreen(u8g2);
@@ -138,17 +138,23 @@ void setup() {
   pinMode(kPreviousButtonPin, INPUT_PULLUP);
   u8g2.begin();
   initTimeScreen();
+  initGpsSerialMonitorBridge();
   resetArkanoidGame(arkanoidGame);
 }
 
 void loop() {
   const unsigned long nowMs = millis();
+  const bool gpsScreenActive = (currentMode == MODE_SCREENS && currentScreen == 4);
+
+  setGpsSerialMonitorBridgeEnabled(gpsScreenActive);
+
+  if (gpsScreenActive) {
+    pumpGpsNmeaToSerialMonitor();
+  }
 
   updateButton(nextButton, nowMs);
   updateButton(previousButton, nowMs);
   handleTwoButtonCombo();
-
-  u8g2.clearBuffer();
 
   if (currentMode == MODE_GAME) {
     updateArkanoidGame(
@@ -157,8 +163,10 @@ void loop() {
       isPressed(nextButton) && !isPressed(previousButton),
       nowMs
     );
-    renderArkanoidGame(u8g2, arkanoidGame);
-    u8g2.sendBuffer();
+    u8g2.firstPage();
+    do {
+      renderArkanoidGame(u8g2, arkanoidGame);
+    } while (u8g2.nextPage());
     return;
   }
 
@@ -170,6 +178,8 @@ void loop() {
     goToPreviousScreen();
   }
 
-  renderActiveScreen();
-  u8g2.sendBuffer();
+  u8g2.firstPage();
+  do {
+    renderActiveScreen();
+  } while (u8g2.nextPage());
 }
