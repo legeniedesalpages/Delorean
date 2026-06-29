@@ -4,7 +4,7 @@
 #include "display_utils.h"
 #include "screens/ArkanoidScreen.h"
 #include "screens/TimeScreen.h"
-#include "screens/Screen2.h"
+#include "screens/SpeedScreen.h"
 #include "screens/Screen3.h"
 #include "screens/Screen4.h"
 #include "screens/Screen5.h"
@@ -116,7 +116,7 @@ static void renderActiveScreen() {
       renderTimeScreen(u8g2);
       break;
     case 1:
-      renderScreen2(u8g2);
+      renderSpeedScreen(u8g2);
       break;
     case 2:
       renderScreen3(u8g2);
