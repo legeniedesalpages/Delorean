@@ -14,7 +14,6 @@ U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 
 constexpr uint8_t kNextButtonPin = 8;
 constexpr uint8_t kPreviousButtonPin = 7;
-constexpr uint8_t kScreenCount = 5;
 constexpr uint16_t kDebounceMs = 30;
 
 enum AppMode : uint8_t {
@@ -71,12 +70,21 @@ static bool isPressed(const ButtonState& button) {
   return button.stableLevel == LOW;
 }
 
-static void goToNextScreen() {
-  currentScreen = (currentScreen + 1) % kScreenCount;
+static void toggleTimeAndSpeedScreens() {
+  if (currentScreen == 0) {
+    currentScreen = 1;
+  } else {
+    currentScreen = 0;
+  }
 }
 
-static void goToPreviousScreen() {
-  currentScreen = (currentScreen + kScreenCount - 1) % kScreenCount;
+static void cycleScreensThreeToFive() {
+  if (currentScreen < 2 || currentScreen > 4) {
+    currentScreen = 2;
+    return;
+  }
+
+  currentScreen = (currentScreen == 4) ? 2 : (currentScreen + 1);
 }
 
 static void enterGame() {
@@ -170,12 +178,12 @@ void loop() {
     return;
   }
 
-  if (!suppressReleaseActions && nextButton.releasedEvent) {
-    goToNextScreen();
+  if (!suppressReleaseActions && previousButton.releasedEvent) {
+    toggleTimeAndSpeedScreens();
   }
 
-  if (!suppressReleaseActions && previousButton.releasedEvent) {
-    goToPreviousScreen();
+  if (!suppressReleaseActions && nextButton.releasedEvent) {
+    cycleScreensThreeToFive();
   }
 
   u8g2.firstPage();
