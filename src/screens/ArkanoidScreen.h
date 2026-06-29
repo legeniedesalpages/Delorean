@@ -157,8 +157,6 @@ inline void drawArkanoidBrick(U8G2& u8g2, const ArkanoidBrick& brick) {
 
 inline void renderArkanoidGame(U8G2& u8g2, const ArkanoidGameState& game) {
   u8g2.setFont(u8g2_font_5x7_tr);
-  u8g2.drawStr(2, toPhysicalY(6), "ARKANOID");
-  u8g2.drawHLine(0, toPhysicalY(8), 128);
 
   for (uint8_t index = 0; index < kArkanoidBrickCount; ++index) {
     if (game.bricks[index].active) {
