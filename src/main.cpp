@@ -6,6 +6,7 @@
 #include "screens/TimeScreen.h"
 #include "screens/SpeedScreen.h"
 #include "screens/TemperatureScreen.h"
+#include "screens/TripTimeScreen.h"
 #include "screens/DateScreen.h"
 #include "screens/GpsCreen.h"
 
@@ -101,12 +102,12 @@ static void toggleTimeAndSpeedScreens() {
 }
 
 static void cycleScreensThreeToFive() {
-  if (currentScreen < 2 || currentScreen > 4) {
+  if (currentScreen < 2 || currentScreen > 5) {
     currentScreen = 2;
     return;
   }
 
-  currentScreen = (currentScreen == 4) ? 2 : (currentScreen + 1);
+  currentScreen = (currentScreen == 5) ? 2 : (currentScreen + 1);
 }
 
 static void enterGame() {
@@ -152,9 +153,12 @@ static void renderActiveScreen() {
       renderTemperatureScreen(u8g2);
       break;
     case 3:
-      renderDateScreen(u8g2);
+      renderTripTimeScreen(u8g2);
       break;
     case 4:
+      renderDateScreen(u8g2);
+      break;
+    case 5:
       renderGpsCreen(u8g2);
       break;
     default:
@@ -171,13 +175,14 @@ void setup() {
   initTimeScreen();
   logRtcStartupTime();
   initTemperatureScreen();
+  initTripTimeScreen();
   initGpsCreen();
   resetArkanoidGame(arkanoidGame);
 }
 
 void loop() {
   const unsigned long nowMs = millis();
-  const bool gpsDataScreenActive = (currentMode == MODE_SCREENS && (currentScreen == 1 || currentScreen == 4));
+  const bool gpsDataScreenActive = (currentMode == MODE_SCREENS && (currentScreen == 1 || currentScreen == 5));
 
   setGpsCreenEnabled(gpsDataScreenActive);
 
