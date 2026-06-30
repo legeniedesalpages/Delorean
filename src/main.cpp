@@ -26,6 +26,7 @@ enum Screen : uint8_t
 };
 
 static Screen currentScreen = Screen::TIME;
+static bool overrideButton = false;
 
 void setup() {
   Serial.begin(115200);
@@ -36,6 +37,7 @@ void setup() {
   u8g2.setFont(u8g2_font_10x20_tr);
 
   initGps();
+  initTimeScreen();
 }
 
 void pageChange(ButtonPressed btn) {
@@ -68,7 +70,7 @@ void pageChange(ButtonPressed btn) {
 void pageRender(Screen screen, ButtonPressed btn) {
   switch (screen) {
     case Screen::TIME:
-      renderTimeScreen(u8g2, btn);
+      overrideButton = renderTimeScreen(u8g2, btn);
       break;
     case Screen::SPEED:
       char buffer[20];
@@ -98,7 +100,9 @@ void loop() {
   updateSpeed();
 
   ButtonPressed btn = buttonStatus();
-  pageChange(btn);
+  if (!overrideButton) {
+   pageChange(btn);
+  }
 
   u8g2.firstPage();
   do {
