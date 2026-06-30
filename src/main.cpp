@@ -38,6 +38,7 @@ void setup() {
 
   initGps();
   initTimeScreen();
+  initTemperatureScreen();
 }
 
 void pageChange(ButtonPressed btn) {
@@ -76,7 +77,7 @@ void pageRender(Screen screen, ButtonPressed btn) {
       renderSpeedScreen(u8g2, btn);
       break;
     case Screen::TEMPERATURE:
-      u8g2.drawStr(20, 35, "Temperature");
+      renderTemperatureScreen(u8g2, btn);
       break;
     case Screen::DATE:
       u8g2.drawStr(20, 35, "Date");
