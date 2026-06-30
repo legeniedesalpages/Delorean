@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 
+const int Y_POSITION = 26;
+
 void drawTimeSegA(U8G2& u8g2, int x, int y) {
   u8g2.drawLine(x + 2, y, x + 14, y);
   u8g2.drawLine(x + 0, y + 1, x + 14, y + 1);

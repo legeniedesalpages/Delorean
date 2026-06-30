@@ -7,11 +7,9 @@
 #include "service/DigitService.h"
 #include "service/ButtonService.h"
 
-const int kDigitW = 14;
-const int kGap = 12;
+const int gap = 12;
 const int startX = 10;
-const int y = 26;
-const int step = kDigitW + kGap;
+const int step = 14 + gap;
 
 inline RTC_DS3231& rtc() { static RTC_DS3231 rtc; return rtc; }
 inline int& hour() { static int hour; return hour; }
@@ -27,13 +25,15 @@ inline void initTimeScreen() {
 }
 
 void drawTimeColon(U8G2& u8g2, int x, int y) {
-  u8g2.drawDisc(x, y - 10, 2, U8G2_DRAW_ALL);
-  u8g2.drawDisc(x, y + 10, 2, U8G2_DRAW_ALL);
+  u8g2.drawDisc(x, y, 2, U8G2_DRAW_ALL);
+  u8g2.drawDisc(x, y + 20, 2, U8G2_DRAW_ALL);
 }
 
 inline bool renderTimeScreen(U8G2 &u8g2, ButtonPressed btn) {
 
-  bool blink;
+  const DateTime now = rtc().now();
+
+  bool blink = (millis() % 1000) < 200;
   if (btn == ButtonPressed::LEFT_LONG) {
     edititionMode() = true;
     editHour() = true;
@@ -46,18 +46,11 @@ inline bool renderTimeScreen(U8G2 &u8g2, ButtonPressed btn) {
 
   if (edititionMode()) {
 
-    if (millis() % 1000 < 200) {
-      blink = true;
-    } else {
-      blink = false;
-    }
-
     if (btn == ButtonPressed::RIGHT && !ignoreNextButton()) {
 
       if (editHour()) {
         editHour() = false;
       } else {
-        DateTime now = rtc().now();
         rtc().adjust(DateTime(now.year(), now.month(), now.day(), hour(), minute(), 0));
         edititionMode() = false;
       }
@@ -77,23 +70,23 @@ inline bool renderTimeScreen(U8G2 &u8g2, ButtonPressed btn) {
     } 
 
   } else {
-    const DateTime now = rtc().now();
+
     hour() = now.hour();
     minute() = now.minute();
 
     if ((rtc().now().second() % 2) == 0) {
-      drawTimeColon(u8g2, startX + step * 2, 45);
+      drawTimeColon(u8g2, startX + step * 2, 35);
     }
   }
 
   if (!(edititionMode() && editHour() && blink)) {
-    drawTimeDigit(u8g2, startX, y, hour() / 10);
-    drawTimeDigit(u8g2, startX + step, y, hour() % 10);
+    drawTimeDigit(u8g2, startX, Y_POSITION, hour() / 10);
+    drawTimeDigit(u8g2, startX + step, Y_POSITION, hour() % 10);
   }
 
   if (!(edititionMode() && !editHour() && blink)) {
-    drawTimeDigit(u8g2, startX + step * 2 + kGap, y, minute() / 10);
-    drawTimeDigit(u8g2, startX + step * 3 + kGap, y, minute() % 10);
+    drawTimeDigit(u8g2, startX + step * 2 + gap, Y_POSITION, minute() / 10);
+    drawTimeDigit(u8g2, startX + step * 3 + gap, Y_POSITION, minute() % 10);
   }
   
   return edititionMode();
