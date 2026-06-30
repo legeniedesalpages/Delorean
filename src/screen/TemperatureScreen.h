@@ -32,4 +32,8 @@ inline void renderTemperatureScreen(U8G2 &u8g2, ButtonPressed btn) {
 
     u8g2.drawCircle(temperatureStartX + 78, 30, 2, U8G2_DRAW_ALL);
     u8g2.drawStr(temperatureStartX + 82, 37, "C");
+
+    char buf[10];
+    snprintf(buf, sizeof(buf), "H:%d%%", (int) roundf(temperatureScreenDht().readHumidity()));
+    u8g2.drawStr(temperatureStartX + 65, 21, buf);
 }
