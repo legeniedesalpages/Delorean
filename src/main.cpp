@@ -80,7 +80,7 @@ void pageRender(Screen screen, ButtonPressed btn) {
       renderTemperatureScreen(u8g2, btn);
       break;
     case Screen::DATE:
-      u8g2.drawStr(20, 35, "Date");
+      overrideButton = renderDateScreen(u8g2, btn);
       break;
     case Screen::TRIP:
       u8g2.drawStr(20, 35, "Trip");
