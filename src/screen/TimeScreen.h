@@ -7,9 +7,7 @@
 #include "service/DigitService.h"
 #include "service/ButtonService.h"
 
-const int gap = 12;
-const int startX = 10;
-const int step = 14 + gap;
+const int timeStartX = 10;
 
 inline RTC_DS3231& rtc() { static RTC_DS3231 rtc; return rtc; }
 inline int& hour() { static int hour; return hour; }
@@ -75,18 +73,18 @@ inline bool renderTimeScreen(U8G2 &u8g2, ButtonPressed btn) {
     minute() = now.minute();
 
     if ((rtc().now().second() % 2) == 0) {
-      drawTimeColon(u8g2, startX + step * 2, 35);
+      drawTimeColon(u8g2, timeStartX + step * 2, 35);
     }
   }
 
   if (!(edititionMode() && editHour() && blink)) {
-    drawTimeDigit(u8g2, startX, Y_POSITION, hour() / 10);
-    drawTimeDigit(u8g2, startX + step, Y_POSITION, hour() % 10);
+    drawTimeDigit(u8g2, timeStartX, Y_POSITION, hour() / 10);
+    drawTimeDigit(u8g2, timeStartX + step, Y_POSITION, hour() % 10);
   }
 
   if (!(edititionMode() && !editHour() && blink)) {
-    drawTimeDigit(u8g2, startX + step * 2 + gap, Y_POSITION, minute() / 10);
-    drawTimeDigit(u8g2, startX + step * 3 + gap, Y_POSITION, minute() % 10);
+    drawTimeDigit(u8g2, timeStartX + step * 2 + gap, Y_POSITION, minute() / 10);
+    drawTimeDigit(u8g2, timeStartX + step * 3 + gap, Y_POSITION, minute() % 10);
   }
   
   return edititionMode();

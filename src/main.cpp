@@ -34,7 +34,7 @@ void setup() {
   buttonSetup();
 
   u8g2.begin();
-  u8g2.setFont(u8g2_font_10x20_tr);
+  u8g2.setFont(u8g2_font_8x13_tr);
 
   initGps();
   initTimeScreen();
@@ -73,9 +73,7 @@ void pageRender(Screen screen, ButtonPressed btn) {
       overrideButton = renderTimeScreen(u8g2, btn);
       break;
     case Screen::SPEED:
-      char buffer[20];
-      snprintf(buffer, sizeof(buffer), "Vitesse: %d", gpsSpeedKph());
-      u8g2.drawStr(20, 35, buffer);
+      renderSpeedScreen(u8g2, btn);
       break;
     case Screen::TEMPERATURE:
       u8g2.drawStr(20, 35, "Temperature");
